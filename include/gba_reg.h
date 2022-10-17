@@ -1,6 +1,6 @@
-//---------------------------------------------------------------------------------
-//This class defines the base register addresses for I/O VRAM etc
-//---------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------
+// This class defines the base register addresses for I/O VRAM etc
+// ---------------------------------------------------------------------------------
 
 #ifndef __GBA_REG_H__
 #define __GBA_REG_H__
@@ -9,7 +9,7 @@
 * This is 256K in Size
 */
 #define	EWRAM		0x02000000
-#define	EWRAM_END	0x02040000 // From This address up to 0x02FFFFFF is not utilised
+#define	EWRAM_END	0x02040000 //  From This address up to 0x02FFFFFF is not utilised
 /*
 * Define the Base Address for Internal (on-chip) Work RAM (WRAM)
 * This is 32K in Size
@@ -31,6 +31,4 @@
 */
 #define	SRAM		0x0E000000
 
-
-
-#endif //__GBA_REG_H__
+#endif // __GBA_REG_H__

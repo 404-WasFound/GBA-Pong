@@ -2,23 +2,16 @@
 #include <stdbool.h>
 #include "gba_input.h"
 
-//\===========================================================================================================
-//\TYPEDEF our variables to indicate clearly what level of bit precision each variable has
-//\===========================================================================================================
+
 typedef uint8_t		u8;		typedef int8_t		s8;
 typedef uint16_t	u16;	typedef int16_t		s16;
 typedef uint32_t	u32;	typedef int32_t		s32;
-//\===========================================================================================================
-//\ Volatile variables
-//\ The volatile key word indicates to the compiler, and the programmer. That these variables may have their values
-//\ altered by an external factor, this could be a hardware switch, or some external program that can access the 
-//\ memory location of the variable.
-//\===========================================================================================================
-typedef volatile uint8_t		v_u8;	typedef volatile int8_t			v_s8;
-typedef volatile uint16_t		v_u16;	typedef volatile int16_t		v_s16;
-typedef volatile uint32_t		v_u32;	typedef volatile int32_t		v_s32;
-//\===========================================================================================================
-//\ Set up defines for making sense of some memory addresses
+
+typedef volatile uint8_t	v_u8;	typedef volatile int8_t     zv_s8;
+typedef volatile uint16_t	v_u16;	typedef volatile int16_t 	v_s16;
+typedef volatile uint32_t	v_u32;	typedef volatile int32_t 	v_s32;
+
+
 #define REG_DISPCNT *((v_u32*)(0x04000000))
 #define VIDEOMODE_3 0x0003
 #define BGMODE_2	0x0400
@@ -26,96 +19,107 @@ typedef volatile uint32_t		v_u32;	typedef volatile int32_t		v_s32;
 #define SCREENBUFFER ((v_u16*)(0x06000000))
 #define SCREEN_W 240
 #define SCREEN_H 160
-//\===========================================================================================================
-//\ Function to get the absolute value of a variable passed into it. This function uses bitwise operators
-//\ The value sent in is bitshifted right 31 bits, this will leave only the most significant bit the sign bit.
-//\ if the sign bit is on then this is a negative integer value, shifting it 31 spaces right leaves us with a 
-//\ value of 0 or all 1's for a -tve number (this is really implementation independent, but works on the GBA arm 
-//\ implementation). We then XOR this back into the original value which will remove the negative (this is two's 
-//\ compliment at work) and give us a positive value if the mask was negative we add one (mask is either 0 or -1)
-//\ and get our absolute number, no if statments involved. GBA code has to be quick.
+
+
 s32 abs(s32 a_val)
 {
-	s32 mask = a_val >> 31;
+	
+    s32 mask = a_val >> 31;
 	return (a_val ^ mask) - mask;
-}
-//\===========================================================================================================
-//\ Function takes three 8 bit values and uses these to set a 16 bit value, the & 0x1F ensures that the values are
-//\ all less than 5 bits in size, any number higher than 31 will be truncated.
-u16 setColour(u8 a_red, u8 a_green, u8 a_blue)
-{
-	return (a_red & 0x1F) | (a_green & 0x1F) << 5 | (a_blue & 0x1f) << 10;
-}
-//\===========================================================================================================
-void plotPixel( u32 a_x, u32 a_y, u16 a_colour)
-{
-	SCREENBUFFER[a_y * SCREEN_W + a_x] = a_colour;
+
 }
 
-//\===========================================================================================================
-//\function to fill a rectangular area of the screen with the colour value provided to it as the 5th argument.
+u16 setColour(u8 a_red, u8 a_green, u8 a_blue)
+{
+	
+    return (a_red & 0x1F) | (a_green & 0x1F) << 5 | (a_blue & 0x1f) << 10;
+
+}
+
+void plotPixel( u32 a_x, u32 a_y, u16 a_colour)
+{
+
+	SCREENBUFFER[a_y * SCREEN_W + a_x] = a_colour;
+
+}
+
 void drawRect(u32 a_left, u32 a_top, u32 a_width, u32 a_height, u16 a_colour)
 {
+
 	for (u32 y = 0; y < a_height; ++y)
 	{
+
 		for (u32 x = 0; x < a_width; ++x)
 		{
-			SCREENBUFFER[ (a_top + y) * SCREEN_W + a_left + x ] = a_colour;
-		}
+		
+        	SCREENBUFFER[ (a_top + y) * SCREEN_W + a_left + x ] = a_colour;
+		
+        }
+
 	}
+
 }
-//\===========================================================================================================
-//\ an implementation of bresenham's line drawing algorithm, allows lines to be drawn in any direction
-//\ from positive to negative direction, vertically or horizontally
+
 void drawLine(u32 a_x, u32 a_y, u32 a_x2, u32 a_y2, u16 a_colour)
 {
-	//Get the horizontal and vertical displacement of the line
-	s32 w = a_x2 - a_x; //w is width or horizontal distance
-	s32 h = a_y2 - a_y; //h is the height or vertical displacement
-	//work out what the change in x and y is with the d in these variables stands for delta
+
+	// Get the horizontal and vertical displacement of the line
+	s32 w = a_x2 - a_x; // w is width or horizontal distance
+	s32 h = a_y2 - a_y; // h is the height or vertical displacement
+	// work out what the change in x and y is with the d in these variables stands for delta
 	s32 dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0;
 
 	if (w<0) dx1 = dx2 = -1; else if (w>0) dx1 = dx2 = 1;
 	if (h<0) dy1 = -1; else if (h>0) dy1 = 1;
-	//which is the longest the horizontal or vertical step
-	s32 longest = abs(w); //assume that width is the longest displacement
+	// which is the longest the horizontal or vertical step
+	s32 longest = abs(w); // assume that width is the longest displacement
 	s32 shortest = abs(h);
-	if ( shortest > longest )	//oops it's the other way around reverse it
+	
+    if ( shortest > longest )	// oops it's the other way around reverse it
 	{
-		//use xor to swap longest and shortest around
+
+		// use xor to swap longest and shortest around
 		longest ^= shortest; shortest ^= longest; longest ^= shortest;
 		if (h<0) dy2 = -1; else if (h>0) dy2 = 1;
 		dx2 = 0;
-	}
-	//geta  value that is half the longest displacement
+	
+    }
+	// geta  value that is half the longest displacement
 	s32 numerator = longest >> 1;
-	//for each pixel across the longest span
+	// for each pixel across the longest span
 	for (s32 i = 0; i <= longest; ++i)
-	{
-		//fill the pixel we're currently at
+    {
+
+		// fill the pixel we're currently at
 		plotPixel( a_x, a_y, a_colour);
-		//increase the numerator by the shortest span
+		// increase the numerator by the shortest span
 		numerator += shortest;
-		if (numerator>longest)  
+
+		if (numerator>longest)
 		{
-			//if the numerator is now larger than the longest span
-			//subtract the longest value from the numerator
+
+			// if the numerator is now larger than the longest span
+			// subtract the longest value from the numerator
 			numerator -= longest;
-			//increment x & y by their delta1 values
+			// increment x & y by their delta1 values
 			a_x += dx1;
 			a_y += dy1;
-		}
-		else 
+
+		} else
 		{
-			//numerator is smaller than the longst side
-			//increment x & y by their delta 2 values
+
+			// numerator is smaller than the longst side
+			// increment x & y by their delta 2 values
 			a_x += dx2;
 			a_y += dy2;
+
 		}
+
 	}
+
 }
 
-//? Random number generator
+// ? Random number generator
 s32 __gba_rand_seed = 42;
 
 s32 seed_gba_rand(s32 a_seed)
@@ -209,7 +213,7 @@ void MoveBall(Ball* a_ball)
         a_ball->y = (SCREEN_H >> 1) - (a_ball->size >> 1);
         a_ball->xDir = 0;
         a_ball->yDir = 0;
-        
+
         StartBall(a_ball);
 
     }
@@ -240,7 +244,7 @@ void vsync()
 
 }
 
-//? Paddles
+// ? Paddles
 typedef struct Paddle
 {
 
@@ -310,7 +314,7 @@ void HitPaddles(Ball* a_ball, Paddle* a_pad)
 
 int main()
 {
-	//set GBA rendering context to MODE 3 Bitmap Rendering and enable BG 2
+	// set GBA rendering context to MODE 3 Bitmap Rendering and enable BG 2
 	REG_DISPCNT = VIDEOMODE_3 | BGMODE_2;
 
     // Clear screen
@@ -327,7 +331,7 @@ int main()
     Paddle p2;
     InitPaddle(&p2, SCREEN_W - 18, 60, 8, 40, setColour(15, 0, 31));
 
-	while (1) { //loop forever
+	while (1) {
 
         vsync();
         PollKeys();
@@ -340,22 +344,22 @@ int main()
         HitPaddles(&ball, &p1);
         HitPaddles(&ball, &p2);
 
-        //? Move Paddle
+        // Move Paddle
         s16 pDir = 0;
 		if(keyDown(UP))
 		{
 
 			pDir = -2;
-		
+
         }
-		
+
         if(keyDown(DOWN))
 		{
 
 			pDir = 2;
-		
+
         }
-		
+
         MovePaddle(&p1, pDir);
 
 		pDir = 0;
@@ -363,16 +367,17 @@ int main()
 		{
 
 			pDir = -2;
-		
+
         }
-		
+
         if(keyDown(B))
 		{
 
 			pDir = 2;
-		
+
         }
-		
+
+        // Call update functions
         MovePaddle(&p2, pDir);
 
         DrawBall(&ball);
@@ -380,6 +385,6 @@ int main()
         DrawPaddle(&p2);
 
 	}
-	
+
 	return 0;
 }

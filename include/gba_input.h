@@ -1,8 +1,8 @@
-//---------------------------------------------------------------------------------
-// This header file outlines the registers for GBA Key Input and provides functionality
-// for handling key presses
-//
-//---------------------------------------------------------------------------------
+// ---------------------------------------------------------------------------------
+//  This header file outlines the registers for GBA Key Input and provides functionality
+//  for handling key presses
+// 
+// ---------------------------------------------------------------------------------
 
 #include "gba_reg.h"
 #include "gba_types.h"
@@ -21,6 +21,7 @@
 
 typedef enum KEYS
 {
+
 	A = (1 << 0),
 	B = (1 << 1),
 	SELECT = (1 << 2),
@@ -36,13 +37,12 @@ typedef enum KEYS
 	KEYIRQ_OR = (0 << 15),		/*!< interrupt logical OR mode */
 	KEYIRQ_AND = (1 << 15),		/*!< interrupt logical AND mode */
 
-
 } KEYS;
 
 #define KEY_MASK 0x03FF
-//Vars to hold the current and previous state of the hardware keys
+// Vars to hold the current and previous state of the hardware keys
 extern u16 __currKeys, __prevKeys;
-//Function to test for Hardware Key Depress
+// Function to test for Hardware Key Depress
 INLINE void PollKeys()
 {
 
@@ -62,24 +62,35 @@ INLINE u16		keyStateChange(u16 a_key){ return (__currKeys ^ __prevKeys) & a_key;
 
 typedef enum AXIS
 {
+
 	HORIZONTAL = 0,
 	VERTICAL,
 
-}AXIS;
+} AXIS;
 
 INLINE s16	getAxis(AXIS a_val)
 {
+
 	switch (a_val)
 	{
-	case HORIZONTAL:
-		//shift __currKeys down 4 to move the value for RIGHT to the lowest bit & with 1 do the same for LEFT and subtract
-		//if right is pressed the equation becomes 1 - 0 = 1, if Left is pressed then 0 - 1 = -1.
-		return ((__currKeys >> 4) & 1) - ((__currKeys >> 5) & 1);
-	case VERTICAL:
-		//This is the same logic as above however uses UP and DOWN.
-		return ((__currKeys >> 6) & 1) - ((__currKeys >> 7) & 1);
-	default:
-		return 0;
+
+		case HORIZONTAL:
+
+			// shift __currKeys down 4 to move the value for RIGHT to the lowest bit & with 1 do the same for LEFT and subtract
+			// if right is pressed the equation becomes 1 - 0 = 1, if Left is pressed then 0 - 1 = -1.
+			return ((__currKeys >> 4) & 1) - ((__currKeys >> 5) & 1);
+
+		case VERTICAL:
+
+			// This is the same logic as above however uses UP and DOWN.
+			return ((__currKeys >> 6) & 1) - ((__currKeys >> 7) & 1);
+
+		default:
+
+			return 0;
+
 	}
+
 }
-#endif //__GBA_INPUT_H__
+
+#endif // __GBA_INPUT_H__
